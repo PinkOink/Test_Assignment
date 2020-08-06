@@ -1,0 +1,6 @@
+Alice’s car shop
+
+If 2 sets of points define the same car, then one set can be transformed into another by a combination of rotation and translation.
+Geometric median's position with respect to the points remains the same, if the set of points is rotated or translated. The first step of the algorithm is to translate all sets of points and the points of target car so that all geometric medians are in (0,0,0).
+The next step is to choose one non-zero point from target set and to rotate every set of points from database so that corresponding points are equal to the chosen point (it will only happen if corresponding vectors have equal length). The chosen point of target set will be the axis for second rotation. After that, the next non-zero point must be chosen from target set. It can't be collinear with the axis. The second rotation around the axis must match corresponding points of every set in database with this new chosen point of target set.
+The last thing is to compare transformed sets of points with target set and to choose equal ones.
