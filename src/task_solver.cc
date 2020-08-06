@@ -39,32 +39,38 @@ void TaskSolver::Solve() {
     }
     car_target_->TranslatePointsMedianToOrigin();
 
+    size_t cur_point_pos = 0;
+    size_t first_point_pos = 0;
+    size_t second_point_pos = 0;
+    Eigen::Vector3d axis;
+    Eigen::Vector3d first_target;
+    Eigen::Vector3d second_target;
+    for (; cur_point_pos < car_target_->GetPointsNumber(); ++cur_point_pos) {
+        first_target = car_target_->GetPoint(cur_point_pos);
+        if (first_target.norm() > ERROR) {
+            axis = first_target.normalized();
+            first_point_pos = cur_point_pos;
+            break;
+        }
+    }
+    for (cur_point_pos++; cur_point_pos < car_target_->GetPointsNumber(); ++cur_point_pos) {
+        second_target = car_target_->GetPoint(cur_point_pos);
+        if (second_target.norm() > ERROR &&
+            std::abs(second_target.norm() - std::abs(second_target.dot(axis))) > ERROR) {
+            second_point_pos = cur_point_pos;
+            break;
+        }
+    }
+
     for (size_t i = 0; i < cars_.size(); ++i) {
         KeyPoints &cur_car = *cars_[i];
 
-        size_t cur_point_pos = 0;
-        Eigen::Vector3d axis;
         bool result = true;
-        for (; cur_point_pos < car_target_->GetPointsNumber(); ++cur_point_pos) {
-            Eigen::Vector3d vec_target = car_target_->GetPoint(cur_point_pos);
-            if (vec_target.norm() > ERROR) {
-                axis = vec_target;
-                axis.normalize();
-                result = cur_car.RotateToVector(vec_target, cur_point_pos);
-                break;
-            }
-        }
+        result = cur_car.RotateToVector(first_target, first_point_pos);
         if (!result) {
             continue;
         }
-        for (cur_point_pos++; cur_point_pos < car_target_->GetPointsNumber(); ++cur_point_pos) {
-            Eigen::Vector3d vec_target = car_target_->GetPoint(cur_point_pos);
-            if (vec_target.norm() > ERROR &&
-                std::abs(vec_target.norm() - std::abs(vec_target.dot(axis))) > ERROR) {
-                cur_car.RotateToVectorWithAxis(axis, vec_target, cur_point_pos);
-                break;
-            }
-        }
+        cur_car.RotateToVectorWithAxis(axis, second_target, second_point_pos);
         if (cur_car.Compare(*car_target_)) {
             result_ += std::to_string(i);
         }
